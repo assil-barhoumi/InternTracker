@@ -17,3 +17,7 @@ db.sqlite3
 
 # VSCode
 .vscode/
+
+# Django settings
+config/settings.py
+
