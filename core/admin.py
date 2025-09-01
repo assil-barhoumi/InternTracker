@@ -3,7 +3,7 @@ from .models import InternshipOffer, Intern, InternshipApplication, Interview
 
 @admin.register(InternshipOffer)
 class InternshipOfferAdmin(admin.ModelAdmin):
-    list_display = ('title', 'department', 'duration')
+    list_display = ('title', 'department', 'duration','requirements','start_date','end_date')
 
 @admin.register(Intern)
 class InternAdmin(admin.ModelAdmin):

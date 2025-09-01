@@ -1,0 +1,22 @@
+{% block content %}
+  <h1>Available Internship Offers</h1>
+
+  {% if offers %}
+    <ul>
+      {% for offer in offers %}
+        <li>
+          <h2>{{ offer.title }}</h2>
+          <p>Department: {{ offer.department }}</p>
+          <p>Duration: {{ offer.duration }}</p>
+          <p>Requirements: {{ offer.requirements }}</p>
+          <p><strong>Start:</strong> {{ offer.start_date }}</p>
+          <p><strong>End:</strong> {{ offer.end_date }}</p>    
+
+         
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No internship offers available at the moment.</p>
+  {% endif %}
+{% endblock %}

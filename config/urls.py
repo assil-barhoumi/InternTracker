@@ -17,13 +17,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from core import views
-from django.contrib.auth import views as auth_views 
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import login_required
+
 
 urlpatterns = [
     path('', views.home, name='home'),
     path('admin/', admin.site.urls),
     path('register/', views.register, name='register'),  
     path('login/', auth_views.LoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'), 
-
+    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    path("offers/", views.offer_list, name="offer_list"),
+    path('profile/upload-cv/', login_required(views.upload_cv), name='upload_cv'),
+   
 ]
