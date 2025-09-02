@@ -12,7 +12,16 @@
           <p><strong>Start:</strong> {{ offer.start_date }}</p>
           <p><strong>End:</strong> {{ offer.end_date }}</p>    
 
-         
+          {% if user.is_authenticated %}
+            <form method="post" action="{% url 'apply_offer' offer_id=offer.id %}">
+            {% csrf_token %}
+            <button type="submit">Apply Now</button>
+            </form>
+          {% else %}
+            <a href="{% url 'login' %}?next={% url 'offer_list' %}">
+               <button type="button">Login to Apply</button>
+            </a>
+          {% endif %}
         </li>
       {% endfor %}
     </ul>

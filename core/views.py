@@ -26,6 +26,29 @@ def offer_list(request):
     offers = InternshipOffer.objects.all()
     return render(request, "offers/offer_list.html", {"offers": offers})
 
+
+@login_required
+def apply_offer(request, offer_id):
+    offer = get_object_or_404(InternshipOffer, id=offer_id)
+    intern, _ = Intern.objects.get_or_create(user=request.user)
+
+    if not intern.cv:
+        messages.warning(request, "Please upload your CV before applying to offers.")
+        return redirect('upload_cv')
+
+    if InternshipApplication.objects.filter(intern=intern, internship_offer=offer).exists():
+        messages.info(request, "You have already applied to this offer.")
+        return redirect('offer_list')
+
+    try:
+        InternshipApplication.objects.create(intern=intern, internship_offer=offer)
+        messages.success(request, "Application submitted successfully!")
+    except Exception as e:
+        messages.error(request, f"Cannot apply: {e}")
+
+    return redirect('offer_list')
+
+
 @login_required
 def upload_cv(request):
     intern, _ = Intern.objects.get_or_create(user=request.user)
@@ -38,7 +61,8 @@ def upload_cv(request):
         )
         
         if form.is_valid():
-            form.save()          
+            form.save()
+            
             intern.updated_at = timezone.now()
             intern.save()
             messages.success(request, "Your CV has been uploaded successfully!")

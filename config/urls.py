@@ -28,6 +28,7 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path("offers/", views.offer_list, name="offer_list"),
+    path('offers/apply/<int:offer_id>/', views.apply_offer, name='apply_offer'),
     path('profile/upload-cv/', login_required(views.upload_cv), name='upload_cv'),
    
 ]
