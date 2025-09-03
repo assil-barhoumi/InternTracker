@@ -4,6 +4,18 @@
 
 {% block content %}
 <h1>Welcome, {{ request.user.get_full_name|default:request.user.username }}!</h1>
+ <p><a href="{% url 'offer_list' %}">Browse Offers</a></p>
+
+ <h2>Your CV</h2>
+{% if intern.cv %}
+    <p>
+        <a href="{{ intern.cv.url }}" target="_blank">View Current CV</a>
+        (Last updated: {{ intern.updated_at|date:"F j, Y" }})
+    </p>
+{% else %}
+    <p>No CV uploaded yet</p>
+{% endif %}
+<p><a href="{% url 'upload_cv' %}">{{ intern.cv|yesno:"Update,Upload" }} CV</a></p>
 
 <h2>Your Applications</h2>
 {% if applications %}

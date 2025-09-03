@@ -19,7 +19,8 @@ from django.urls import path
 from core import views
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
-
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -34,3 +35,6 @@ urlpatterns = [
     
    
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

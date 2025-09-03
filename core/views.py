@@ -32,8 +32,8 @@ def home(request):
 @login_required
 def dashboard(request):
     intern = get_object_or_404(Intern, user=request.user)
-    apps = InternshipApplication.objects.filter(intern=intern).select_related('internship_offer').order_by('-applied_at')
-    return render(request, 'intern/dashboard.html', {'intern': intern, 'applications': apps})
+    applications = InternshipApplication.objects.filter(intern=intern).select_related('internship_offer').order_by('-applied_at')
+    return render(request, 'intern/dashboard.html', {'intern': intern, 'applications': applications})
 
 
 def offer_list(request):
