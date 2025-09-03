@@ -6,15 +6,18 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from .forms import CVUploadForm
 from django.utils import timezone
-
+from django.contrib.auth import login
 
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, "Account created successfully. You can now log in.")
-            return redirect('login')
+            user.save()
+            Intern.objects.get_or_create(user=user)
+            login(request, user)
+            messages.success(request, "Account created successfully. Welcome!")
+            return redirect('offer_list')
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})

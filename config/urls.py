@@ -25,7 +25,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('admin/', admin.site.urls),
     path('register/', views.register, name='register'),  
-    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('login/', auth_views.LoginView.as_view(next_page='offer_list'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path("offers/", views.offer_list, name="offer_list"),
     path('offers/apply/<int:offer_id>/', views.apply_offer, name='apply_offer'),
