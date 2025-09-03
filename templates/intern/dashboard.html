@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1>Welcome, {{ request.user.get_full_name|default:request.user.username }}!</h1>
+
+<h2>Your Applications</h2>
+{% if applications %}
+    <ul>
+    {% for app in applications %}
+        <li>
+            {{ app.internship_offer.title }} - {{ app.internship_offer.department }} -
+            Status: {{ app.get_status_display }} -
+            Applied on: {{ app.applied_at|date:"M d, Y" }}
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>You haven't applied to any positions yet. <a href="{% url 'offer_list' %}">Browse available positions</a>.</p>
+{% endif %}
+
+<p><a href="{% url 'logout' %}">Logout</a></p>
+{% endblock %}

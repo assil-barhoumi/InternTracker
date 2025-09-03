@@ -1,5 +1,10 @@
+{% extends 'base.html' %}
 {% block content %}
   <h1>Available Internship Offers</h1>
+
+{% if user.is_authenticated %}
+    <p><a href="{% url 'dashboard' %}">View Your Applications</a></p>
+{% endif %}
 
   {% if offers %}
     <ul>

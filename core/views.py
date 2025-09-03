@@ -23,7 +23,18 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form})
 
 def home(request):
-    return render(request, 'core/home.html')
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect('admin_dashboard')
+        return redirect('dashboard')
+    return offer_list(request)  
+
+@login_required
+def dashboard(request):
+    intern = get_object_or_404(Intern, user=request.user)
+    apps = InternshipApplication.objects.filter(intern=intern).select_related('internship_offer').order_by('-applied_at')
+    return render(request, 'intern/dashboard.html', {'intern': intern, 'applications': apps})
+
 
 def offer_list(request):
     offers = InternshipOffer.objects.all()
