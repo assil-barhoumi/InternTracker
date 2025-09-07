@@ -4,22 +4,21 @@ from django.contrib import messages
 from .models import InternshipOffer , Intern , InternshipApplication
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
-from .forms import CVUploadForm
+from .forms import CVUploadForm, CustomUserCreationForm
 from django.utils import timezone
 from django.contrib.auth import login
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            user.save()
             Intern.objects.get_or_create(user=user)
             login(request, user)
             messages.success(request, "Account created successfully. Welcome!")
             return redirect('offer_list')
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
 
 def home(request):
