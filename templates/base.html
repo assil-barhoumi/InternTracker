@@ -11,13 +11,14 @@
         {% if user.is_authenticated %}
             <span>Welcome, {{ user.username }}</span>
             <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'profile' %}">Profile</a>
             <form method="post" action="{% url 'logout' %}" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit">Logout</button>
             </form>
         {% else %}
             <a href="{% url 'login' %}">Login</a>
-            <a href="{% url 'signup' %}">Sign Up</a>
+            <a href="{% url 'register' %}">Sign Up</a>
         {% endif %}
     </nav>
 

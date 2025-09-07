@@ -30,6 +30,7 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path("offers/", views.offer_list, name="offer_list"),
     path('offers/apply/<int:offer_id>/', views.apply_offer, name='apply_offer'),
+    path('profile/', login_required(views.profile), name='profile'),
     path('profile/upload-cv/', login_required(views.upload_cv), name='upload_cv'),
     path('dashboard/', login_required(views.dashboard), name='dashboard'),
     
