@@ -91,11 +91,5 @@ def upload_cv(request):
 
 @login_required
 def profile(request):
-    """User profile view."""
-    intern = get_object_or_404(Intern, user=request.user)
-    return render(request, 'intern/profile.html', {'intern': intern})
-
-@login_required
-def profile(request):
     intern = get_object_or_404(Intern, user=request.user)
     return render(request, 'intern/profile.html', {'intern': intern})

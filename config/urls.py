@@ -33,8 +33,8 @@ urlpatterns = [
     path('profile/', login_required(views.profile), name='profile'),
     path('profile/upload-cv/', login_required(views.upload_cv), name='upload_cv'),
     path('dashboard/', login_required(views.dashboard), name='dashboard'),
-    
-   
+    path('password_change/', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done')
 ]
 
 if settings.DEBUG:
