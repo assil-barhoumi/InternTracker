@@ -23,10 +23,8 @@ def register(request):
 
 def home(request):
     if request.user.is_authenticated:
-        if request.user.is_staff:
-            return redirect('admin_dashboard')
         return redirect('dashboard')
-    return offer_list(request)  
+    return offer_list(request)
 
 @login_required
 def dashboard(request):

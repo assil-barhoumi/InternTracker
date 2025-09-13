@@ -21,7 +21,7 @@ class InternshipApplicationAdmin(admin.ModelAdmin):
 
 @admin.register(Interview)
 class InterviewAdmin(admin.ModelAdmin):
-    list_display = ('get_intern', 'get_internship_offer', 'date_time', 'completed')
+    list_display = ('get_intern', 'get_internship_offer', 'date_time', 'status','archived')
 
     def get_intern(self, obj):
         return obj.application.intern
