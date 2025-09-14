@@ -17,7 +17,40 @@ class InternAdmin(admin.ModelAdmin):
 
 @admin.register(InternshipApplication)
 class InternshipApplicationAdmin(admin.ModelAdmin):
-    list_display = ('intern', 'internship_offer', 'status', 'applied_at')
+    list_display = ('intern', 'internship_offer', 'status', 'applied_at', 'interview_status')
+    list_filter = ('status', 'internship_offer__department', 'applied_at')
+    search_fields = ('intern__user__username', 'internship_offer__title', 'intern__user__email')
+    list_editable = ('status',)
+    actions = ['approve_applications', 'reject_applications', 'schedule_interview']
+    date_hierarchy = 'applied_at'
+
+    def has_change_permission(self, request, obj=None):
+        return False
+        
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return [f.name for f in self.model._meta.fields if f.name != 'status']
+        return []
+        
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def interview_status(self, obj):
+        interview = obj.interviews.first()
+        if interview:
+            return f"{interview.get_interview_type_display()} - {'Completed' if interview.status == 'completed' else 'Pending'}"
+        return "No Interview"
+    interview_status.short_description = 'Interview Status'
+
+    def approve_applications(self, request, queryset):
+        updated = queryset.update(status='approved')
+        self.message_user(request, f"{updated} application(s) approved successfully.")
+    approve_applications.short_description = "Approve selected applications"
+
+    def reject_applications(self, request, queryset):
+        updated = queryset.update(status='refused')
+        self.message_user(request, f"{updated} application(s) rejected.")
+    reject_applications.short_description = "Reject selected applications"
 
 @admin.register(Interview)
 class InterviewAdmin(admin.ModelAdmin):
