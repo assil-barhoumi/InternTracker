@@ -12,6 +12,7 @@ class InternshipOffer(models.Model):
     requirements = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField()
+    is_archived = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title

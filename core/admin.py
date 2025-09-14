@@ -1,19 +1,62 @@
 from django.contrib import admin
 from .models import InternshipOffer, Intern, InternshipApplication, Interview
 
+from django.utils.html import format_html
+from django.urls import reverse
+
 @admin.register(InternshipOffer)
 class InternshipOfferAdmin(admin.ModelAdmin):
-    list_display = ('title', 'department', 'duration','requirements','start_date','end_date')
+    list_display = ('title', 'department', 'start_date', 'end_date', 'is_archived', 'application_count', 'view_applications_link')
+    list_filter = ('department', 'is_archived', 'start_date', 'end_date')
+    search_fields = ('title', 'description', 'requirements')
+    actions = ['archive_selected', 'unarchive_selected']
+    date_hierarchy = 'start_date'
+
+    def application_count(self, obj):
+        return obj.applications.count()
+    application_count.short_description = 'Applications'
+
+    def view_applications_link(self, obj):
+        url = f"{reverse('admin:core_internshipapplication_changelist')}?internship_offer__id__exact={obj.id}"
+        return format_html('<a href="{}">View Applications</a>', url)
+    view_applications_link.short_description = 'Applications'
+
+    def archive_selected(self, request, queryset):
+        updated = queryset.update(is_archived=True)
+        self.message_user(request, f"{updated} internship offer(s) archived successfully.")
+    archive_selected.short_description = "Archive selected offers"
+
+    def unarchive_selected(self, request, queryset):
+        updated = queryset.update(is_archived=False)
+        self.message_user(request, f"{updated} internship offer(s) unarchived successfully.")
+    unarchive_selected.short_description = "Unarchive selected offers"
 
 @admin.register(Intern)
 class InternAdmin(admin.ModelAdmin):
-    list_display = ('user', 'cv')
-
+    list_display = ('user', 'get_email', 'cv_link', 'application_count')
+    search_fields = ('user__username', 'user__email', 'user__first_name', 'user__last_name')
+    list_filter = ('user__is_active',)
+    
     def has_add_permission(self, request):
         return False
-
+        
     def has_change_permission(self, request, obj=None):
         return False
+
+    def get_email(self, obj):
+        return obj.user.email
+    get_email.short_description = 'Email'
+    get_email.admin_order_field = 'user__email'
+
+    def cv_link(self, obj):
+        if obj.cv:
+            return format_html('<a href="{0}" target="_blank">View CV</a>', obj.cv.url)
+        return "No CV"
+    cv_link.short_description = 'CV'
+
+    def application_count(self, obj):
+        return obj.applications.count()
+    application_count.short_description = 'Applications'
 
 @admin.register(InternshipApplication)
 class InternshipApplicationAdmin(admin.ModelAdmin):
