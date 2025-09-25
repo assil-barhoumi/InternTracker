@@ -1,36 +1,77 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Internship Offers - Smart Intern{% endblock %}
+
 {% block content %}
-  <h1>Available Internship Offers</h1>
-
-{% if user.is_authenticated %}
-    <p><a href="{% url 'dashboard' %}">View Your Applications</a></p>
-{% endif %}
-
-  {% if offers %}
-    <ul>
-      {% for offer in offers %}
-        <li>
-          <h2>{{ offer.title }}</h2>
-          <p>Department: {{ offer.department }}</p>
-          <p>Duration: {{ offer.duration }}</p>
-          <p>Requirements: {{ offer.requirements }}</p>
-          <p><strong>Start:</strong> {{ offer.start_date }}</p>
-          <p><strong>End:</strong> {{ offer.end_date }}</p>    
-
-          {% if user.is_authenticated %}
-            <form method="post" action="{% url 'apply_offer' offer_id=offer.id %}">
-            {% csrf_token %}
-            <button type="submit">Apply Now</button>
-            </form>
-          {% else %}
-            <a href="{% url 'login' %}?next={% url 'offer_list' %}">
-               <button type="button">Login to Apply</button>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Available Internship Offers</h1>
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                <i class="fas fa-tasks me-1"></i> View Your Applications
             </a>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No internship offers available at the moment.</p>
-  {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <!-- Offers List -->
+        <div class="col-12">
+            {% if offers %}
+                {% for offer in offers %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">{{ offer.title }}</h5>
+                            <span class="badge" style="background-color: #fff9c4; color: #5d4037;">{{ offer.department }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <p class="card-text text-muted small">
+                                <i class="far fa-calendar-alt me-1"></i> 
+                                {{ offer.start_date|date:"M d, Y" }} - {{ offer.end_date|date:"M d, Y" }}
+                            </p>
+                            <p class="card-text">
+                                <strong>Duration:</strong> {{ offer.duration }}<br>
+                                <strong>Requirements:</strong> {{ offer.requirements|truncatewords:20 }}
+                            </p>
+                        </div>
+                        
+                        <div class="mt-auto">
+                            {% if user.is_authenticated %}
+                                <form method="post" action="{% url 'apply_offer' offer_id=offer.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn" style="background-color: #fff9c4; color: #5d4037; border: 1px solid #ffe082;">
+                                        <i class="fas fa-paper-plane me-1"></i> Apply Now
+                                    </button>
+                                </form>
+                            {% else %}
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'login' %}?next={% url 'offer_list' %}" class="btn" style="background-color: #fff9c4; color: #5d4037; border: 1px solid #ffe082;">
+                                        <i class="fas fa-sign-in-alt me-1"></i> Login to Apply
+                                    </a>
+                                    <p class="text-center text-muted small mb-0">
+                                        Don't have an account? 
+                                        <a href="{% url 'register' %}?next={% url 'offer_list' %}">Register here</a>
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <div>
+                            <h5 class="alert-heading mb-1">No Active Positions</h5>
+                            <p class="mb-0">There are currently no open internship offers matching your criteria.</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}
