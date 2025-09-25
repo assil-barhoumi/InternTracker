@@ -1,27 +1,90 @@
 {% extends 'base.html' %}
-
-{% block title %}My Profile{% endblock %}
-
+{% load static %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/profile.css' %}">{% endblock %}
+{% block title %}My Profile - Smart Intern{% endblock %}
 {% block content %}
-<h1>My Profile</h1>
-
-<h2>Personal Information</h2>
-<p><strong>Username:</strong> {{ intern.user.username }}</p>
-<p><strong>Email:</strong> {{ intern.user.email }}</p>
-<p><strong>First Name:</strong> {{ intern.user.first_name|default:"Not set" }}</p>
-<p><strong>Last Name:</strong> {{ intern.user.last_name|default:"Not set" }}</p>
-<p><strong>Member since:</strong> {{ intern.user.date_joined|date:"F j, Y" }}</p>
-<p><strong>Last login:</strong> {{ intern.user.last_login|date:"F j, Y H:i"|default:"Never" }}</p>
-
-<h2>My CV</h2>
-{% if intern.cv %}
-    <p><a href="{{ intern.cv.url }}" target="_blank">View my CV</a></p>
-    {% if intern.updated_at %}
-        <p>Last updated: {{ intern.updated_at|date:"F j, Y H:i" }}</p>
-    {% endif %}
-    <p><a href="{% url 'upload_cv' %}">Update CV</a></p>
-{% else %}
-    <p>No CV uploaded yet. <a href="{% url 'upload_cv' %}">Upload CV</a></p>
-{% endif %}
-
+<div class="container py-4">
+  <div class="card shadow-sm mb-4 border-0 bg-gradient" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+    <div class="card-body p-4">
+      <div class="row align-items-center">
+        <div class="col-auto">
+          <div class="avatar-lg" style="width: 100px; height: 100px; background-color: #6c757d; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; font-weight: bold;">{{ intern.user.first_name|first|upper }}{{ intern.user.last_name|first|upper }}</div>
+        </div>
+        <div class="col">
+          <h1 class="mb-1">{{ intern.user.get_full_name|default:intern.user.username }}</h1>
+          <p class="text-muted mb-2"><i class="fas fa-envelope me-2"></i>{{ intern.user.email }}</p>
+          <div class="d-flex gap-2 flex-wrap">
+            <span class="badge bg-primary"><i class="fas fa-user-graduate me-1"></i> Student</span>
+            <span class="badge bg-success"><i class="fas fa-calendar-alt me-1"></i> Member since {{ intern.user.date_joined|date:"M Y" }}</span>
+          </div>
+        </div>
+        <div class="col-auto">
+          <a href="{% url 'offer_list' %}" class="btn btn-primary"><i class="fas fa-briefcase me-1"></i> Browse Internships</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="card-title mb-0"><i class="fas fa-user-circle text-primary me-2"></i>Personal Information</h5>
+            <a href="#" class="btn btn-sm btn-outline-secondary" title="Edit profile"><i class="fas fa-edit me-1"></i> Edit</a>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6"><div class="p-3 bg-light rounded"><p class="mb-1 small text-muted">First Name</p><p class="mb-0 fw-medium">{{ intern.user.first_name|default:"Not set" }}</p></div></div>
+            <div class="col-md-6"><div class="p-3 bg-light rounded"><p class="mb-1 small text-muted">Last Name</p><p class="mb-0 fw-medium">{{ intern.user.last_name|default:"Not set" }}</p></div></div>
+            <div class="col-12"><div class="p-3 bg-light rounded"><p class="mb-1 small text-muted">Email Address</p><p class="mb-0 fw-medium">{{ intern.user.email }}</p></div></div>
+            <div class="col-md-6"><div class="p-3 bg-light rounded"><p class="mb-1 small text-muted">Member Since</p><p class="mb-0"><i class="far fa-calendar-alt me-2 text-muted"></i>{{ intern.user.date_joined|date:"M d, Y" }}</p></div></div>
+            <div class="col-md-6"><div class="p-3 bg-light rounded"><p class="mb-1 small text-muted">Last Login</p><p class="mb-0"><i class="far fa-clock me-2 text-muted"></i>{{ intern.user.last_login|date:"M d, Y H:i"|default:"Never" }}</p></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="card-title mb-0"><i class="fas fa-file-alt text-primary me-2"></i>My CV</h5>
+            <span class="badge bg-{{ intern.cv|yesno:'success,danger' }}">{{ intern.cv|yesno:'Uploaded,Not Uploaded' }}</span>
+          </div>
+          {% if intern.cv %}
+            <div class="text-center p-4 bg-light rounded">
+              <i class="fas fa-file-pdf text-danger mb-3" style="font-size: 3.5rem;"></i>
+              <h5 class="mb-2">Your CV is ready</h5>
+              {% if intern.updated_at %}
+                <p class="text-muted small mb-4">Last updated: {{ intern.updated_at|date:"F j, Y \a\t g:i A" }}</p>
+              {% endif %}
+              <div class="d-flex gap-2 justify-content-center">
+                <a href="{{ intern.cv.url }}" target="_blank" class="btn btn-outline-primary"><i class="fas fa-eye me-1"></i> View CV</a>
+                <a href="{% url 'upload_cv' %}" class="btn btn-primary"><i class="fas fa-sync-alt me-1"></i> Update CV</a>
+              </div>
+            </div>
+          {% else %}
+            <div class="text-center p-5 bg-light rounded">
+              <div class="mb-4"><i class="fas fa-file-upload text-muted" style="font-size: 3.5rem;"></i></div>
+              <h5 class="mb-3">No CV Uploaded Yet</h5>
+              <p class="text-muted mb-4">Upload your CV to apply for internship positions and let employers find you.</p>
+              <a href="{% url 'upload_cv' %}" class="btn btn-primary"><i class="fas fa-upload me-2"></i> Upload CV Now</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-4"><i class="fas fa-bolt text-warning me-2"></i>Quick Actions</h5>
+          <p class="small text-muted mb-2">Manage your account security settings</p>
+          <div class="d-grid gap-2 mb-3">
+            <a href="{% url 'password_change' %}" class="btn btn-outline-secondary text-start"><i class="fas fa-key me-2"></i> Change Password</a>
+          </div>
+          <p class="small text-muted mb-2">Need help or have questions?</p>
+          <div class="d-grid gap-2">
+            <a href="#" class="btn btn-outline-secondary text-start"><i class="fas fa-envelope me-2"></i> Contact Us</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
