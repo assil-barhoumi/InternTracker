@@ -7,7 +7,9 @@ from django.shortcuts import get_object_or_404
 from .forms import CVUploadForm, CustomUserCreationForm, UserEditForm
 from django.utils import timezone
 from django.contrib.auth import login
-
+from django.core.paginator import Paginator
+from django.db.models import Q
+    
 def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -35,7 +37,41 @@ def dashboard(request):
 
 def offer_list(request):
     offers = InternshipOffer.objects.all()
-    return render(request, "offers/offer_list.html", {"offers": offers})
+    department = request.GET.get('department', '')
+    duration = request.GET.get('duration', '')
+    q = request.GET.get('q', '')
+
+    if department:
+        offers = offers.filter(department=department)
+    if duration:
+        offers = offers.filter(duration=duration)
+    if q:
+        offers = offers.filter(
+            Q(title__icontains=q) | Q(description__icontains=q) | Q(requirements__icontains=q)
+        )
+
+    departments = InternshipOffer.objects.values_list('department', flat=True).distinct()
+    all_offers = InternshipOffer.objects.all()
+    durations = sorted(
+        set(offer.duration for offer in all_offers if offer.duration),
+        key=lambda x: int(x.split()[0]) if x.split() and x.split()[0].isdigit() else 0
+    )
+    paginator = Paginator(offers.order_by('-start_date'), 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'offers': page_obj.object_list,
+        'departments': departments,
+        'durations': durations,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'request': request,
+        'selected_department': department,
+        'selected_duration': duration,
+        'search_query': q,
+    }
+    return render(request, "offers/offer_list.html", context)
 
 
 @login_required

@@ -1,6 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+<style>
+   .fixed-filter-sidebar { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
+    @media (max-width: 991.98px) { .fixed-filter-sidebar { position: static; max-height: none; }}
+</style>
+{% endblock %}
 {% block title %}Internship Offers - Smart Intern{% endblock %}
 
 {% block content %}
@@ -13,10 +20,45 @@
             </a>
         {% endif %}
     </div>
-
     <div class="row">
+        <!-- Filter Sidebar -->
+            <div class="col-lg-3 mb-4">
+                <div class="card bg-gradient shadow-sm mb-4 fixed-filter-sidebar">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3"><i class="fas fa-filter me-2"></i>Filter Offers</h5>
+                        <form method="get" id="filter-form">
+                        <div class="mb-3">
+                            <label for="search" class="form-label small text-muted">Search</label>
+                            <input type="text" class="form-control" id="search" name="q" value="{{ search_query }}" placeholder="Search offers...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="department" class="form-label small text-muted">Department</label>
+                            <select class="form-select" id="department" name="department">
+                                <option value="">All Departments</option>
+                                {% for dept in departments %}
+                                    <option value="{{ dept }}" {% if selected_department == dept %}selected{% endif %}>{{ dept }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="duration" class="form-label small text-muted">Duration</label>
+                            <select class="form-select" id="duration" name="duration">
+                                <option value="">Any</option>
+                                {% for duration in durations %}
+                                    <option value="{{ duration }}" {% if selected_duration == duration %}selected{% endif %}>{{ duration }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn" style="background-color: #28a745; color: white; border: 1px solid #1a6e2c;"><i class="fas fa-filter me-1"></i>Apply</button>
+                            <a href="{% url 'offer_list' %}" class="btn btn-outline-secondary"><i class="fas fa-undo me-1"></i>Reset</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
         <!-- Offers List -->
-        <div class="col-12">
+        <div class="col-lg-9">
             {% if offers %}
                 {% for offer in offers %}
                 <div class="card mb-4 shadow-sm">
@@ -25,7 +67,6 @@
                             <h5 class="card-title mb-0">{{ offer.title }}</h5>
                             <span class="badge" style="background-color: #fff9c4; color: #5d4037;">{{ offer.department }}</span>
                         </div>
-                        
                         <div class="mb-3">
                             <p class="card-text text-muted small">
                                 <i class="far fa-calendar-alt me-1"></i> 
@@ -36,7 +77,6 @@
                                 <strong>Requirements:</strong> {{ offer.requirements|truncatewords:20 }}
                             </p>
                         </div>
-                        
                         <div class="mt-auto">
                             {% if user.is_authenticated %}
                                 <form method="post" action="{% url 'apply_offer' offer_id=offer.id %}" class="d-inline">
@@ -60,10 +100,33 @@
                     </div>
                 </div>
                 {% endfor %}
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Offers pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_department %}department={{ selected_department }}&{% endif %}{% if selected_duration %}duration={{ selected_duration }}&{% endif %}page=1">&laquo;&laquo;</a></li>
+                            <li class="page-item"><a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_department %}department={{ selected_department }}&{% endif %}{% if selected_duration %}duration={{ selected_duration }}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item"><a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_department %}department={{ selected_department }}&{% endif %}{% if selected_duration %}duration={{ selected_duration }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_department %}department={{ selected_department }}&{% endif %}{% if selected_duration %}duration={{ selected_duration }}&{% endif %}page={{ page_obj.next_page_number }}">&raquo;</a></li>
+                            <li class="page-item"><a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_department %}department={{ selected_department }}&{% endif %}{% if selected_duration %}duration={{ selected_duration }}&{% endif %}page={{ page_obj.paginator.num_pages }}">&raquo;&raquo;</a></li>
+                        {% endif %}
+                    </ul>
+                    <p class="text-center text-muted small mt-2">Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} offers</p>
+                </nav>
+                {% endif %}
             {% else %}
-                <div class="alert alert-info">
+                <div class="alert alert-danger">
                     <div class="d-flex align-items-center">
-                        <i class="fas fa-info-circle me-2"></i>
+                        <i class="fas fa-exclamation-circle me-2"></i>
                         <div>
                             <h5 class="alert-heading mb-1">No Active Positions</h5>
                             <p class="mb-0">There are currently no open internship offers matching your criteria.</p>
