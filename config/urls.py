@@ -31,6 +31,7 @@ urlpatterns = [
     path("offers/", views.offer_list, name="offer_list"),
     path('offers/apply/<int:offer_id>/', views.apply_offer, name='apply_offer'),
     path('profile/', login_required(views.profile), name='profile'),
+    path('profile/edit/', login_required(views.edit_profile), name='edit_profile'),
     path('profile/upload-cv/', login_required(views.upload_cv), name='upload_cv'),
     path('dashboard/', login_required(views.dashboard), name='dashboard'),
     path('password_change/', auth_views.PasswordChangeView.as_view(), name='password_change'),

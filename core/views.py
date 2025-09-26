@@ -4,7 +4,7 @@ from django.contrib import messages
 from .models import InternshipOffer , Intern , InternshipApplication
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
-from .forms import CVUploadForm, CustomUserCreationForm
+from .forms import CVUploadForm, CustomUserCreationForm, UserEditForm
 from django.utils import timezone
 from django.contrib.auth import login
 
@@ -86,6 +86,19 @@ def upload_cv(request):
         'form': form,
         'intern': intern  
     })
+
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        form = UserEditForm(instance=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile was updated successfully!')
+            return redirect('profile')
+    else:
+        form = UserEditForm(instance=request.user)
+    
+    return render(request, 'intern/edit_profile.html', {'form': form})
 
 @login_required
 def profile(request):
