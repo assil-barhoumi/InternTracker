@@ -1,15 +1,63 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-</head>
-<body>
-    <h2>Login</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Login</button>
-    </form>
-    <p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Login - Smart Intern{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-page-bg">
+  <div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm auth-drop" style="box-shadow: 0 .8rem 2rem rgba(15,23,42,0.08);">
+        <div class="card-body p-4">
+          <div class="text-center mb-3">
+            <i class="fas fa-sign-in-alt text-primary" style="font-size:2rem;"></i>
+          </div>
+                <h3 class="text-center mb-1">Welcome back</h3>
+                <p class="text-center text-muted small mb-3">Log in to access your internship dashboard</p>
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors|striptags }}</div>
+          {% endif %}
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="mb-3">
+                <label class="form-label">{{ field.label }}</label>
+                {% if field.name == 'username' %}
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    {{ field|add_class:"form-control"|attr:"placeholder:Enter your email/username" }}
+                  </div>
+                {% elif field.name == 'password' %}
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    {{ field|add_class:"form-control"|attr:"placeholder:Enter your password" }}
+                  </div>
+                  <div style="height:12px"></div>
+                {% else %}
+                  {{ field|add_class:"form-control" }}
+                {% endif %}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<div class="text-danger small">{{ field.errors|striptags }}</div>{% endif %}
+              </div>
+            {% endfor %}
+            <div class="d-flex justify-content-end gap-2 align-items-center mt-3">
+              <a href="{% url 'register' %}" class="btn btn-outline-secondary" aria-label="Register for an account">
+                <i class="fas fa-user-plus me-1"></i> Register
+              </a>
+              <button type="submit" class="btn btn-success" aria-label="Log in to your account">
+                <i class="fas fa-arrow-right-to-bracket me-1"></i> Login
+              </button>
+            </div>
+          </form>         
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
