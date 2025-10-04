@@ -3,12 +3,14 @@ from .models import InternshipOffer, Intern, InternshipApplication, Interview
 
 from django.utils.html import format_html
 from django.urls import reverse
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.conf import settings
 
 @admin.register(InternshipOffer)
 class InternshipOfferAdmin(admin.ModelAdmin):
     list_display = ('title', 'department', 'start_date', 'end_date', 'is_archived', 'application_count', 'view_applications_link')
     list_filter = ('department', 'is_archived', 'start_date', 'end_date')
-    search_fields = ('title', 'description', 'requirements')
     actions = ['archive_selected', 'unarchive_selected']
     date_hierarchy = 'start_date'
 
@@ -86,13 +88,63 @@ class InternshipApplicationAdmin(admin.ModelAdmin):
     interview_status.short_description = 'Interview Status'
 
     def approve_applications(self, request, queryset):
-        updated = queryset.update(status='approved')
-        self.message_user(request, f"{updated} application(s) approved successfully.")
+        updated = 0
+        for application in queryset:
+            if application.status != 'approved':
+                application.status = 'approved'
+                application.save()
+
+                if application.intern.user.email:
+                    context = {
+                        'user': application.intern.user,
+                        'offer': application.internship_offer,
+                    }
+
+                    subject = f"Application Approved - {application.internship_offer.title}"
+                    html_body = render_to_string('emails/application_approved.html', context)
+
+                    email = EmailMessage(
+                        subject=subject,
+                        body=html_body,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to=[application.intern.user.email]
+                    )
+                    email.content_subtype = "html"
+                    email.send(fail_silently=True)
+
+                updated += 1
+
+        self.message_user(request, f"{updated} application(s) approved and notified successfully.")
     approve_applications.short_description = "Approve selected applications"
 
     def reject_applications(self, request, queryset):
-        updated = queryset.update(status='refused')
-        self.message_user(request, f"{updated} application(s) rejected.")
+        updated = 0
+        for application in queryset:
+            if application.status != 'refused':
+                application.status = 'refused'
+                application.save()
+
+                if application.intern.user.email:
+                    context = {
+                        'user': application.intern.user,
+                        'offer': application.internship_offer,
+                    }
+
+                    subject = f"Application Not Selected - {application.internship_offer.title}"
+                    html_body = render_to_string('emails/application_rejected.html', context)
+
+                    email = EmailMessage(
+                        subject=subject,
+                        body=html_body,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to=[application.intern.user.email]
+                    )
+                    email.content_subtype = "html"
+                    email.send(fail_silently=True)
+
+                updated += 1
+
+        self.message_user(request, f"{updated} application(s) rejected and notified successfully.")
     reject_applications.short_description = "Reject selected applications"
 
 @admin.register(Interview)
