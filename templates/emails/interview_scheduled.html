@@ -1,0 +1,35 @@
+{% load tz %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body{font:16px Arial,sans-serif;margin:0;padding:0;background:#f4f4f4}.content{background:white;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1)}.header{background:#4361ee;padding:30px;text-align:center}.header h1{color:white;margin:0;font:600 24px Arial}.body{padding:30px;color:#2b2d42}.body p{color:#2b2d42;margin:0 0 20px 0}.body p:last-child{margin-bottom:0}.details{background:#f8f9fa;border-radius:6px;padding:20px;margin:20px 0}.details h2{margin:0 0 15px 0;font:600 18px Arial;color:#2b2d42}.details p{margin:0 0 10px 0;font:15px Arial;color:#2b2d42}.footer{background:#f8f9fa;padding:20px;text-align:center;border-top:1px solid #e9ecef}.footer p{margin:0;font:13px Arial;color:#6c757d}a{color:#4361ee;text-decoration:none}
+    </style>
+</head>
+<body>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="container">
+        <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" border="0" class="content">
+                <tr><td class="header"><h1>Interview Scheduled</h1></td></tr>
+                <tr><td class="body">
+                    <p>Dear {{ user.get_full_name|default:user.username }},</p>
+                    <p>We are pleased to inform you that an interview has been scheduled for the position of <strong>{{ offer.title }}</strong>.</p>
+
+                    <div class="details">
+                        <h2>Interview Details:</h2>
+                        <p><strong>Date:</strong> {{ interview_date }}<br><strong>Time:</strong> {{ interview_time }}<br><strong>Type:</strong> {{ interview_type }}</p>
+                        {% if zoom_link %}<p><strong>Zoom Link:</strong> <a href="{{ zoom_link }}">{{ zoom_link }}</a></p>{% endif %}
+                        {% if location %}<p><strong>Location:</strong> {{ location }}</p>{% endif %}
+                    </div>
+
+                    <p>Please ensure you are available at the scheduled time. If you need to reschedule or have any questions, please contact us at <a href="mailto:assilbarhoumi222222@gmail.com">assilbarhoumi222222@gmail.com</a>.</p>
+                    <p>We look forward to speaking with you!</p>
+                    <p>Best regards,<br><strong>The {{ offer.department }} Team</strong></p>
+                </td></tr>
+               </table>
+        </td></tr>
+    </table>
+</body>
+</html>
