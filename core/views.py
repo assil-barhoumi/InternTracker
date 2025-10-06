@@ -32,7 +32,35 @@ def home(request):
 def dashboard(request):
     intern = get_object_or_404(Intern, user=request.user)
     applications = InternshipApplication.objects.filter(intern=intern).select_related('internship_offer').order_by('-applied_at')
-    return render(request, 'intern/dashboard.html', {'intern': intern, 'applications': applications})
+
+    all_applications = InternshipApplication.objects.filter(intern=intern)
+    pending_count = all_applications.filter(status='pending').count()
+    approved_count = all_applications.filter(status='approved').count()
+    refused_count = all_applications.filter(status='refused').count()
+
+    current_hour = timezone.now().hour
+    if 5 <= current_hour < 12:
+        time_greeting = 'morning'
+        time_icon = '☀️'
+    elif 12 <= current_hour < 18:
+        time_greeting = 'afternoon'
+        time_icon = '🌤️'
+    elif 18 <= current_hour < 22:
+        time_greeting = 'evening'
+        time_icon = '🌙'
+    else:
+        time_greeting = 'night'
+        time_icon = '🌙'
+
+    return render(request, 'intern/dashboard.html', {
+        'intern': intern,
+        'applications': applications,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'refused_count': refused_count,
+        'time_greeting': time_greeting,
+        'time_icon': time_icon,
+    })
 
 
 def offer_list(request):

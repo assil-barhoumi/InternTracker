@@ -1,36 +1,138 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Dashboard{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
 
 {% block content %}
-<h1>Welcome, {{ request.user.get_full_name|default:request.user.username }}!</h1>
- <p><a href="{% url 'offer_list' %}">Browse Offers</a></p>
+<div class="container py-4 dashboard-content">
+  <div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+      <div>
+        <h1 class="fw-bold" style="font-size: 2rem; margin-bottom: 0.5rem;">Good {{ time_greeting }}, {{ request.user.get_full_name|default:request.user.username }} {{ time_icon }}</h1>
+        <p class="text-muted mb-3" style="font-size: 1.1rem;">Here's an overview of your internship progress.</p>
+      </div>
+      <a href="{% url 'offer_list' %}" class="btn btn-primary btn-enhanced">
+        <i class="fas fa-briefcase me-2"></i>Browse Internships
+      </a>
+    </div>
+  </div>
 
- <h2>Your CV</h2>
-{% if intern.cv %}
-    <p>
-        <a href="{{ intern.cv.url }}" target="_blank">View Current CV</a>
-        (Last updated: {{ intern.updated_at|date:"F j, Y" }})
-    </p>
-{% else %}
-    <p>No CV uploaded yet</p>
-{% endif %}
-<p><a href="{% url 'upload_cv' %}">{{ intern.cv|yesno:"Update,Upload" }} CV</a></p>
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center border-0 animated-card animated-delay-1">
+        <div class="card-body py-3">
+          <div class="stats-icon total-bg">
+            <i class="fas fa-clipboard-list fa-2x text-primary"></i>
+          </div>
+          <h3 class="mb-1">{{ applications.count }}</h3>
+          <p class="mb-0 text-muted small">Total Applications</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center border-0 animated-card animated-delay-2">
+        <div class="card-body py-3">
+          <div class="stats-icon pending-bg">
+            <i class="fas fa-clock fa-2x text-warning"></i>
+          </div>
+          <h3 class="mb-1">{{ pending_count }}</h3>
+          <p class="mb-0 text-muted small">Pending</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center border-0 animated-card animated-delay-3">
+        <div class="card-body py-3">
+          <div class="stats-icon approved-bg">
+            <i class="fas fa-check-circle fa-2x text-success"></i>
+          </div>
+          <h3 class="mb-1">{{ approved_count }}</h3>
+          <p class="mb-0 text-muted small">Approved</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center border-0 animated-card animated-delay-4">
+        <div class="card-body py-3">
+          <div class="stats-icon refused-bg">
+            <i class="fas fa-times-circle fa-2x text-danger"></i>
+          </div>
+          <h3 class="mb-1">{{ refused_count }}</h3>
+          <p class="mb-0 text-muted small">Refused</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<h2>Your Applications</h2>
-{% if applications %}
-    <ul>
-    {% for app in applications %}
-        <li>
-            {{ app.internship_offer.title }} - {{ app.internship_offer.department }} -
-            Status: {{ app.get_status_display }} -
-            Applied on: {{ app.applied_at|date:"M d, Y" }}
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>You haven't applied to any positions yet. <a href="{% url 'offer_list' %}">Browse available positions</a>.</p>
-{% endif %}
+  <div class="row g-4">
+    <div class="col-lg-12">
+      <div class="card shadow-sm cv-section">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0"><i class="fas fa-file-alt text-primary me-2"></i>Your CV</h5>
+            <span class="badge bg-{{ intern.cv|yesno:'success,danger' }}">{{ intern.cv|yesno:'Uploaded,Not Uploaded' }}</span>
+          </div>
+          {% if intern.cv %}
+            <div class="text-center p-3 bg-light rounded">
+              <i class="fas fa-file-pdf text-danger mb-2" style="font-size: 2rem;"></i>
+              <h6 class="mb-2">CV Ready</h6>
+              <div class="d-flex gap-2 justify-content-center">
+                <a href="{{ intern.cv.url }}" target="_blank" class="btn btn-outline-primary btn-sm">View</a>
+                <a href="{% url 'upload_cv' %}" class="btn btn-primary btn-sm">Update</a>
+              </div>
+            </div>
+          {% else %}
+            <div class="text-center p-3 bg-light rounded">
+              <h6 class="mb-2">No CV</h6>
+              <a href="{% url 'upload_cv' %}" class="btn btn-primary btn-sm">Upload</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
 
-<p><a href="{% url 'logout' %}">Logout</a></p>
+  <div class="row g-4" style="margin-top: 2rem;">
+    <div class="col-lg-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="card-title mb-0"><i class="fas fa-clipboard-list text-primary me-2"></i>Your Applications</h5>
+            <span class="badge bg-success">{{ applications.count }}</span>
+          </div>
+      {% if applications %}
+        <div class="applications-list">
+          {% for app in applications %}
+            <div class="application-card p-3 mb-3 border rounded bg-light">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                  <h6 class="mb-1">{{ app.internship_offer.title }}</h6>
+                  <p class="text-muted small mb-2">{{ app.internship_offer.department }} • <i class="fas fa-calendar-alt me-1"></i>Applied on {{ app.applied_at|date:"M d, Y" }}</p>
+                </div>
+                  <span class="badge status-badge
+                    {% if app.status == 'approved' %}bg-approved
+                    {% elif app.status == 'pending' %}bg-pending
+                    {% elif app.status == 'refused' %}bg-refused
+                    {% else %}bg-secondary{% endif %}
+                  ">
+                    {{ app.get_status_display }}
+                  </span>  
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center p-4 bg-light rounded">
+          <div class="mb-3"><i class="fas fa-inbox text-muted" style="font-size: 3rem;"></i></div>
+          <h6 class="mb-2">No Applications Yet</h6>
+          <p class="text-muted small mb-3">You haven't applied to any positions yet. Start exploring available opportunities!</p>
+          <a href="{% url 'offer_list' %}" class="btn btn-primary btn-enhanced">
+            <i class="fas fa-search me-2"></i> Browse Offers
+          </a>
+        </div>
+      {% endif %}
+  </div>
+</div>
 {% endblock %}
