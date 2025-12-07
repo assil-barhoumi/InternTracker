@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.shortcuts import redirect, get_object_or_404
 
 @admin.register(InternshipOffer)
 class InternshipOfferAdmin(admin.ModelAdmin):
@@ -62,6 +63,7 @@ class InternAdmin(admin.ModelAdmin):
 
 @admin.register(InternshipApplication)
 class InternshipApplicationAdmin(admin.ModelAdmin):
+    change_form_template = "admin/applications/detail.html"
     list_display = ('intern', 'internship_offer', 'status', 'applied_at', 'interview_status')
     list_filter = ('status', 'internship_offer__department', 'applied_at')
     search_fields = ('intern__user__username', 'internship_offer__title', 'intern__user__email')
@@ -69,8 +71,12 @@ class InternshipApplicationAdmin(admin.ModelAdmin):
     actions = ['approve_applications', 'reject_applications', 'schedule_interview']
     date_hierarchy = 'applied_at'
 
+    def changelist_view(self, request, extra_context=None):
+        return redirect('admin_application_list')
+
     def has_change_permission(self, request, obj=None):
-        return False
+        # allow viewing detail page (fields remain readonly)
+        return True
         
     def get_readonly_fields(self, request, obj=None):
         if obj:
@@ -79,6 +85,20 @@ class InternshipApplicationAdmin(admin.ModelAdmin):
         
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        application = get_object_or_404(
+            InternshipApplication.objects.select_related('intern__user', 'internship_offer'),
+            pk=object_id
+        )
+        interviews = application.interviews.order_by('-date_time')
+
+        extra_context = extra_context or {}
+        extra_context.update({
+            'application_obj': application,
+            'interviews': interviews,
+        })
+        return super().change_view(request, object_id, form_url, extra_context)
 
     def interview_status(self, obj):
         interview = obj.interviews.first()

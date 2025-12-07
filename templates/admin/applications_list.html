@@ -1,0 +1,38 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+{% block title %}Applications - Smart Intern Admin{% endblock %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+{% endblock %}
+{% block content %}
+{% with filters="" %}{% if current_status %}{% with filters=filters|add:"&status="|add:current_status %}{% endwith %}{% endif %}{% if current_department %}{% with filters=filters|add:"&department="|add:current_department %}{% endwith %}{% endif %}{% endwith %}
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Internship Applications</h1>
+    <div class="btn-group status-toggle">
+        <a href="{% url 'admin_application_list' %}" class="btn status-btn {% if not current_status %}active{% endif %}">All</a>
+        {% for key, label in status_choices.items %}<a href="?status={{ key }}" class="btn status-btn {% if current_status == key %}active{% endif %}">{{ label }}</a>{% endfor %}
+    </div>
+</div>
+{% include 'admin/includes/applications_filters.html' %}
+<div class="card"><div class="card-body p-0">
+{% if applications %}
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+<thead class="table-light"><tr><th>Candidate</th><th>Position</th><th>Department</th><th>Applied On</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody>
+{% for app in applications %}{% include 'admin/includes/application_row.html' with app=app %}{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div class="text-center p-5"><i class="bi bi-inbox" style="font-size:3rem;color:#6c757d;"></i><h4>No applications found</h4><a href="{% url 'admin_application_list' %}" class="btn btn-primary mt-2">Clear filters</a></div>
+{% endif %}
+</div></div>
+{% endblock %}
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el)));
+</script>
+{% endblock %}

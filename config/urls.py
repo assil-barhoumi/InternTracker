@@ -24,13 +24,17 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('admin/applications/', views.admin_application_list, name='admin_application_list'),
+    path('admin/interviews/', views.admin_interviews_list, name='admin_interviews_list'),
+    path('admin/offers/', views.admin_offers_list, name='admin_offers_list'),
+    path('admin/interns/', views.admin_interns_list, name='admin_interns_list'),
     path('admin/', admin.site.urls),
     path('register/', views.register, name='register'),  
     path('login/', auth_views.LoginView.as_view(next_page='offer_list'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path("offers/", views.offer_list, name="offer_list"),
     path('offers/apply/<int:offer_id>/', views.apply_offer, name='apply_offer'),
-    path('profile/', login_required(views.profile), name='profile'),
+    path('profile/', views.profile, name='profile'),
     path('profile/edit/', login_required(views.edit_profile), name='edit_profile'),
     path('profile/upload-cv/', login_required(views.upload_cv), name='upload_cv'),
     path('dashboard/', login_required(views.dashboard), name='dashboard'),

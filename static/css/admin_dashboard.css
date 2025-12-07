@@ -1,0 +1,86 @@
+.dashboard-wrapper {
+    padding: 1rem 0;
+}
+
+.status-toggle .status-btn {
+    border-radius: 20px !important;
+    padding: 4px 14px;
+    font-weight: 500;
+    border: 1px solid #111;
+    color: #111;
+    background: #fff;
+    margin-right: 6px;
+}
+
+.status-toggle .status-btn:hover {
+    background: #111;
+    color: #fff;
+}
+
+.status-toggle .status-btn.active {
+    background: #111;
+    color: #fff;
+}
+
+.status-toggle .status-btn.active.status-pending {
+    background: #ffe69b;
+    border-color: #ffe69b;
+    color: #7a5a00;
+}
+
+.status-toggle .status-btn.active.status-approved {
+    background: #28a745;
+    border-color: #28a745;
+    color: #fff;
+}
+
+.status-toggle .status-btn.active.status-refused {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+.badge {
+    border-radius: 14px;
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge.pending {
+    background-color: #fff3cd;
+    color: #b68900;
+}
+
+.badge.approved {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.badge.refused {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.action-btn {
+    border-radius: 10px !important;
+    padding: 4px 10px !important;
+}
+
+.table-hover tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.table-hover tbody tr:hover {
+    background: #eef5ff !important;
+    transition: 0.15s;
+}
+
+table td,
+table th {
+    padding: 14px 18px !important;
+}
+
+.card-body {
+    padding: 1.5rem !important;
+}

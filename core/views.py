@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from .models import InternshipOffer , Intern , InternshipApplication
+from .models import InternshipOffer , Intern , InternshipApplication, Interview
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404
 from .forms import CVUploadForm, CustomUserCreationForm, UserEditForm
 from django.utils import timezone
@@ -168,3 +169,84 @@ def edit_profile(request):
 def profile(request):
     intern = get_object_or_404(Intern, user=request.user)
     return render(request, 'intern/profile.html', {'intern': intern})
+
+@staff_member_required
+def admin_application_list(request):
+    status_filter = (request.GET.get('status') or '').lower()
+    department_filter = request.GET.get('department') or ''
+
+    status_choices = dict(InternshipApplication.STATUS_CHOICES)
+    queryset = InternshipApplication.objects.select_related('intern__user', 'internship_offer').order_by('-applied_at')
+
+    if status_filter not in status_choices:
+        status_filter = ''
+    if status_filter:
+        queryset = queryset.filter(status=status_filter)
+    if department_filter:
+        queryset = queryset.filter(internship_offer__department=department_filter)
+
+    if request.method == 'POST':
+        application_id = request.POST.get('application_id')
+        action = request.POST.get('action')
+        if application_id and action in {'approve', 'reject'}:
+            application = get_object_or_404(InternshipApplication, pk=application_id)
+            new_status = 'approved' if action == 'approve' else 'refused'
+            if application.status == new_status:
+                messages.info(request, "No status change was required for this application.")
+            else:
+                application.status = new_status
+                application.save()
+                messages.success(
+                    request,
+                    f"Application for {application.intern.user.get_full_name() or application.intern.user.username} "
+                    f"marked as {application.get_status_display()}."
+                )
+        return redirect(request.get_full_path())
+
+    departments = (
+        InternshipOffer.objects.exclude(department__in=['', None])
+        .values_list('department', flat=True)
+        .order_by('department')
+        .distinct()
+    )
+
+    page_obj = Paginator(queryset, 10).get_page(request.GET.get('page'))
+
+    context = {
+        'applications': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'status_choices': status_choices,
+        'departments': departments,
+        'current_status': status_filter,
+        'current_department': department_filter,
+    }
+    return render(request, 'admin/applications_list.html', context)
+
+@staff_member_required
+def admin_interviews_list(request):
+    status = request.GET.get('status', '')
+    interviews = Interview.objects.select_related('application__intern__user', 'application__internship_offer').order_by('-date_time')
+    if status:
+        interviews = interviews.filter(status=status)
+    return render(request, 'admin/interviews_list.html', {'interviews': interviews, 'current_status': status})
+
+@staff_member_required
+def admin_offers_list(request):
+    archived = request.GET.get('archived')
+    offers = InternshipOffer.objects.all().order_by('-start_date')
+    if archived:
+        offers = offers.filter(is_archived=True)
+    else:
+        offers = offers.filter(is_archived=False)
+    return render(request, 'admin/offers_list.html', {'offers': offers, 'current_archived': archived})
+
+@staff_member_required
+def admin_interns_list(request):
+    cv_status = request.GET.get('cv_status')
+    interns = Intern.objects.select_related('user').order_by('-user__date_joined')
+    if cv_status == 'has_cv':
+        interns = interns.filter(cv__isnull=False)
+    elif cv_status == 'no_cv':
+        interns = interns.filter(cv__isnull=True)
+    return render(request, 'admin/interns_list.html', {'interns': interns, 'current_cv': cv_status})

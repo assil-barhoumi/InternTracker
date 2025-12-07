@@ -1,0 +1,134 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block title %}Application Detail - Smart Intern Admin{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+<style>
+    .application-hero {
+        border-radius: 18px;
+        border: 1px solid #e0e6ef;
+        box-shadow: 0 20px 40px rgba(15, 46, 86, 0.08);
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8fafc, #ffffff);
+    }
+    .application-hero h2 {
+        margin-bottom: 0.25rem;
+    }
+    .status-chip {
+        border-radius: 18px;
+        padding: 6px 16px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .status-chip.pending { background-color: #fff3cd; color:#b68900; }
+    .status-chip.approved { background-color: #d1e7dd; color:#0f5132; }
+    .status-chip.refused { background-color: #f8d7da; color:#842029; }
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+        gap: 1rem;
+        margin-top: 1.25rem;
+    }
+    .detail-card {
+        border-radius: 14px;
+        border: 1px solid #e4e9f2;
+        padding: 1rem;
+        background: #fff;
+    }
+    .detail-card span {
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-bottom: 0.35rem;
+    }
+    .action-links .btn {
+        margin-right: 0.5rem;
+        border-radius: 12px;
+        padding: 6px 14px;
+    }
+    .timeline {
+        border-radius: 16px;
+        border: 1px solid #e0e6ef;
+        padding: 1rem 1.25rem;
+        background: #f9fbff;
+    }
+    .timeline-item + .timeline-item {
+        border-top: 1px dashed #d4dae4;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="application-hero mb-4">
+    <div class="d-flex flex-wrap justify-content-between gap-3">
+        <div>
+            <h2>{{ application_obj.intern.user.get_full_name|default:application_obj.intern.user.username }}</h2>
+            <p class="text-muted mb-1">{{ application_obj.intern.user.email }}</p>
+            <p class="mb-0">Applied for <strong>{{ application_obj.internship_offer.title }}</strong></p>
+        </div>
+        <span class="status-chip {{ application_obj.status }}">{{ application_obj.get_status_display }}</span>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-card">
+            <span>Department</span>
+            <strong>{{ application_obj.internship_offer.department }}</strong>
+        </div>
+        <div class="detail-card">
+            <span>Applied On</span>
+            <strong>{{ application_obj.applied_at|date:"M d, Y H:i" }}</strong>
+        </div>
+        <div class="detail-card">
+            <span>Offer Duration</span>
+            <strong>{{ application_obj.internship_offer.duration }}</strong>
+        </div>
+        <div class="detail-card">
+            <span>Status</span>
+            <strong>{{ application_obj.get_status_display }}</strong>
+        </div>
+    </div>
+
+    <div class="action-links mt-3">
+        <a href="{% url 'admin:core_intern_change' application_obj.intern.id %}" class="btn btn-outline-dark btn-sm" target="_blank">Intern profile</a>
+        <a href="{% url 'admin:core_internshipoffer_change' application_obj.internship_offer.id %}" class="btn btn-outline-primary btn-sm" target="_blank">Offer details</a>
+        {% if application_obj.intern.cv %}
+            <a href="{{ application_obj.intern.cv.url }}" class="btn btn-outline-success btn-sm" target="_blank">View CV</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-12">
+        <div class="timeline">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Interview timeline</h5>
+                <span class="text-muted small">{{ interviews|length }} scheduled</span>
+            </div>
+            {% if interviews %}
+                {% for interview in interviews %}
+                    <div class="timeline-item">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-1">{{ interview.get_interview_type_display }} • {{ interview.date_time|date:"M d, Y H:i" }}</h6>
+                            <span class="badge {{ interview.status }}">{{ interview.get_status_display }}</span>
+                        </div>
+                        <p class="mb-0 text-muted">
+                            {% if interview.location %}Location: {{ interview.location }}{% endif %}
+                            {% if interview.zoom_link %}<a href="{{ interview.zoom_link }}" target="_blank">Join link</a>{% endif %}
+                            {% if interview.notes %}<br>{{ interview.notes }}{% endif %}
+                        </p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted mb-0">No interviews have been scheduled for this application yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

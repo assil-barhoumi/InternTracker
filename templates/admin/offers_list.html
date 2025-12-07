@@ -1,0 +1,45 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+{% block title %}Internship Offers - Smart Intern Admin{% endblock %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+<style>
+.badge { border-radius: 14px; padding: 6px 14px; font-size: 0.75rem; font-weight: 600; }
+.badge.active { background: #d1e7dd; color: #0f5132; }
+.badge.archived { background: #e2e3e5; color: #383d41; }
+.badge.department { background: #fff3cd; color: #856404; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Internship Offers</h1>
+    <div class="btn-group status-toggle">
+        <a href="?archived=" class="btn status-btn {% if not current_archived %}active{% endif %}">Active</a>
+        <a href="?archived=1" class="btn status-btn {% if current_archived %}active{% endif %}">Archived</a>
+    </div>
+</div>
+<div class="card"><div class="card-body p-0">
+{% if offers %}
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+<thead class="table-light"><tr><th>Title</th><th>Department</th><th>Duration</th><th>Start Date</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody>
+{% for offer in offers %}
+<tr>
+<td><h6 class="mb-0">{{ offer.title|truncatechars:30 }}</h6><small class="text-muted">{{ offer.description|truncatechars:50 }}</small></td>
+<td><span class="badge department">{{ offer.department }}</span></td>
+<td>{{ offer.duration }}</td>
+<td>{{ offer.start_date|date:"M d, Y" }}</td>
+<td>{% if offer.is_archived %}<span class="badge archived">Archived</span>{% else %}<span class="badge active">Active</span>{% endif %}</td>
+<td><a href="{% url 'admin:core_internshipoffer_change' offer.id %}" class="btn btn-outline-primary action-btn"><i class="bi bi-pencil"></i></a><a href="{% url 'admin:core_internshipapplication_changelist' %}?internship_offer__id__exact={{ offer.id }}" class="btn btn-outline-primary action-btn"><i class="bi bi-people"></i></a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div class="text-center p-5"><i class="bi bi-briefcase" style="font-size:3rem;color:#6c757d;"></i><h4>No offers found</h4></div>
+{% endif %}
+</div></div>
+{% endblock %}

@@ -1,0 +1,30 @@
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    {% for val, lbl in status_choices.items %}
+                        <option value="{{ val }}" {% if current_status == val %}selected{% endif %}>{{ lbl }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Department</label>
+                <select name="department" class="form-select">
+                    <option value="">All</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept }}" {% if current_department == dept %}selected{% endif %}>{{ dept }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4 d-flex align-items-end">
+                <button class="btn btn-primary me-2">Filter</button>
+                <a href="{% url 'admin_application_list' %}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>

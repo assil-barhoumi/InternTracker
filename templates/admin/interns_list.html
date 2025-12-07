@@ -1,0 +1,45 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+{% block title %}Interns - Smart Intern Admin{% endblock %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+<style>
+.badge { border-radius: 14px; padding: 6px 14px; font-size: 0.75rem; font-weight: 600; }
+.badge.has-cv { background: #d1e7dd; color: #0f5132; }
+.badge.no-cv { background: #fff3cd; color: #856404; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Interns</h1>
+    <div class="btn-group status-toggle">
+        <a href="?cv_status=" class="btn status-btn {% if not current_cv %}active{% endif %}">All</a>
+        <a href="?cv_status=has_cv" class="btn status-btn {% if current_cv == 'has_cv' %}active{% endif %}">Has CV</a>
+        <a href="?cv_status=no_cv" class="btn status-btn {% if current_cv == 'no_cv' %}active{% endif %}">No CV</a>
+    </div>
+</div>
+<div class="card"><div class="card-body p-0">
+{% if interns %}
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+<thead class="table-light"><tr><th>Name</th><th>Email</th><th>CV Status</th><th>Applications</th><th>Joined</th><th>Actions</th></tr></thead>
+<tbody>
+{% for intern in interns %}
+<tr>
+<td><div class="d-flex align-items-center"><div class="bg-light rounded-circle p-2 me-2"><i class="bi bi-person-fill text-primary"></i></div><div><h6 class="mb-0">{{ intern.user.get_full_name|default:intern.user.username }}</h6><small class="text-muted">{{ intern.user.username }}</small></div></div></td>
+<td>{{ intern.user.email }}</td>
+<td>{% if intern.cv %}<span class="badge has-cv">CV Uploaded</span>{% else %}<span class="badge no-cv">No CV</span>{% endif %}</td>
+<td><a href="{% url 'admin:core_internshipapplication_changelist' %}?intern__id__exact={{ intern.id }}" class="btn btn-outline-primary action-btn">{{ intern.applications.count }} apps</a></td>
+<td>{{ intern.user.date_joined|date:"M d, Y" }}</td>
+<td><a href="{% url 'admin:core_intern_change' intern.id %}" class="btn btn-outline-primary action-btn"><i class="bi bi-pencil"></i></a>{% if intern.cv %}<a href="{{ intern.cv.url }}" target="_blank" class="btn btn-outline-primary action-btn"><i class="bi bi-file-text"></i></a>{% endif %}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div class="text-center p-5"><i class="bi bi-people" style="font-size:3rem;color:#6c757d;"></i><h4>No interns found</h4></div>
+{% endif %}
+</div></div>
+{% endblock %}

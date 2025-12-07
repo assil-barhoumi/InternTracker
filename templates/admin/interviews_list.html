@@ -1,0 +1,48 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+{% block title %}Interviews - Smart Intern Admin{% endblock %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+<style>
+.badge { border-radius: 14px; padding: 6px 14px; font-size: 0.75rem; font-weight: 600; }
+.badge.scheduled { background: #fff3cd; color: #856404; }
+.badge.completed { background: #d1e7dd; color: #0f5132; }
+.badge.cancelled { background: #f8d7da; color: #842029; }
+.badge.in_progress { background: #cff4fc; color: #055160; }
+.badge.no_show { background: #e2e3e5; color: #383d41; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Interview Schedule</h1>
+    <div class="btn-group status-toggle">
+        <a href="?status=" class="btn status-btn {% if not current_status %}active{% endif %}">All</a>
+        <a href="?status=scheduled" class="btn status-btn {% if current_status == 'scheduled' %}active{% endif %}">Scheduled</a>
+        <a href="?status=completed" class="btn status-btn {% if current_status == 'completed' %}active{% endif %}">Completed</a>
+    </div>
+</div>
+<div class="card"><div class="card-body p-0">
+{% if interviews %}
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+<thead class="table-light"><tr><th>Candidate</th><th>Position</th><th>Type</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody>
+{% for interview in interviews %}
+<tr>
+<td><div class="d-flex align-items-center"><div class="bg-light rounded-circle p-2 me-2"><i class="bi bi-person-fill text-primary"></i></div><div><h6 class="mb-0">{{ interview.application.intern.user.get_full_name|default:interview.application.intern.user.username }}</h6><small class="text-muted">{{ interview.application.intern.user.email }}</small></div></div></td>
+<td>{{ interview.application.internship_offer.title|truncatechars:25 }}</td>
+<td>{{ interview.get_interview_type_display }}</td>
+<td>{{ interview.date_time|date:"M d, Y H:i" }}</td>
+<td><span class="badge {{ interview.status }}">{{ interview.get_status_display }}</span></td>
+<td><a href="{% url 'admin:core_interview_change' interview.id %}" class="btn btn-outline-primary action-btn"><i class="bi bi-pencil"></i></a>{% if interview.zoom_link %}<a href="{{ interview.zoom_link }}" target="_blank" class="btn btn-outline-success action-btn"><i class="bi bi-camera-video"></i></a>{% endif %}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div class="text-center p-5"><i class="bi bi-calendar-x" style="font-size:3rem;color:#6c757d;"></i><h4>No interviews found</h4></div>
+{% endif %}
+</div></div>
+{% endblock %}
