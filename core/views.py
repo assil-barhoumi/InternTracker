@@ -171,6 +171,70 @@ def profile(request):
     return render(request, 'intern/profile.html', {'intern': intern})
 
 @staff_member_required
+def admin_dashboard(request):
+    from django.utils import timezone
+    from datetime import timedelta
+    from django.db.models import Count
+    import json
+    
+    total_applications = InternshipApplication.objects.count()
+    pending_applications = InternshipApplication.objects.filter(status='pending').count()
+    
+    total_interns = Intern.objects.count()
+    active_interns = Intern.objects.filter(applications__status='approved').distinct().count()
+    
+    now = timezone.now()
+    week_from_now = now + timedelta(days=7)
+    upcoming_interviews = Interview.objects.filter(date_time__gt=now, date_time__lte=week_from_now).count()
+    interviews_this_week = Interview.objects.filter(date_time__gte=now, date_time__lte=week_from_now).count()
+    
+    active_offers = InternshipOffer.objects.filter(is_archived=False).count()
+    total_offers = InternshipOffer.objects.count()
+    
+    recent_applications = InternshipApplication.objects.select_related('intern__user', 'internship_offer').order_by('-applied_at')[:5]
+    upcoming_interviews_list = Interview.objects.select_related('application__intern__user', 'application__internship_offer').filter(date_time__gt=now).order_by('date_time')[:5]
+    
+    department_data = InternshipApplication.objects.values('internship_offer__department').annotate(count=Count('id')).order_by('-count')
+    department_labels = json.dumps([item['internship_offer__department'] or 'Unknown' for item in department_data])
+    department_counts = json.dumps([item['count'] for item in department_data])
+    
+    offers_by_department = InternshipOffer.objects.values('department').annotate(count=Count('id')).order_by('-count')
+    offers_department_labels = json.dumps([item['department'] or 'Unknown' for item in offers_by_department])
+    offers_department_data = json.dumps([item['count'] for item in offers_by_department])
+    
+    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    interviews_by_day = {}
+    for i in range(30):
+        day = start_of_month + timedelta(days=i)
+        if day > now:
+            break
+        day_interviews = Interview.objects.filter(date_time__date=day.date()).count()
+        interviews_by_day[day.strftime('%m/%d')] = day_interviews
+    
+    interview_month_labels = json.dumps(list(interviews_by_day.keys()))
+    interview_month_data = json.dumps(list(interviews_by_day.values()))
+    
+    context = {
+        'total_applications': total_applications,
+        'pending_applications': pending_applications,
+        'active_interns': active_interns,
+        'total_interns': total_interns,
+        'upcoming_interviews': upcoming_interviews,
+        'interviews_this_week': interviews_this_week,
+        'active_offers': active_offers,
+        'total_offers': total_offers,
+        'recent_applications': recent_applications,
+        'upcoming_interviews_list': upcoming_interviews_list,
+        'department_labels': department_labels,
+        'department_data': department_counts,
+        'offers_department_labels': offers_department_labels,
+        'offers_department_data': offers_department_data,
+        'interview_month_labels': interview_month_labels,
+        'interview_month_data': interview_month_data,
+    }
+    return render(request, 'admin/index.html', context)
+
+@staff_member_required
 def admin_application_list(request):
     status_filter = (request.GET.get('status') or '').lower()
     department_filter = request.GET.get('department') or ''

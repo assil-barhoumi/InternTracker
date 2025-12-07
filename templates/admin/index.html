@@ -1,0 +1,162 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Admin Dashboard</h2>
+    <div class="text-muted"><i class="bi bi-clock"></i> Last updated: {% now "M d, Y H:i" %}</div>
+</div>
+
+<div class="row mb-4">
+    {% include 'admin/partials/kpi_card.html' with card_class='kpi-applications' icon_class='bi-file-earmark-text' number=total_applications label='Total Applications' subtitle=pending_applications|add:' pending' %}
+    {% include 'admin/partials/kpi_card.html' with card_class='kpi-interns' icon_class='bi-people' number=active_interns label='Active Interns' subtitle=total_interns|add:' total registered' %}
+    {% include 'admin/partials/kpi_card.html' with card_class='kpi-interviews' icon_class='bi-calendar-check' number=upcoming_interviews label='Upcoming Interviews' subtitle=interviews_this_week|add:' this week' %}
+    {% include 'admin/partials/kpi_card.html' with card_class='kpi-offers' icon_class='bi-briefcase' number=active_offers label='Active Offers' subtitle=total_offers|add:' total offers' %}
+</div>
+
+<div class="row mb-4">
+    {% include 'admin/partials/chart_card.html' with title='Applications per Department' canvas_id='departmentChart' %}
+    {% include 'admin/partials/chart_card.html' with title='Offers per Department' canvas_id='offersChart' %}
+    {% include 'admin/partials/chart_card.html' with title='Interviews This Month' canvas_id='interviewsChart' %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6"><div class="card"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">Upcoming Interviews</h5>
+            <a href="{% url 'admin_interviews_list' %}" class="btn btn-sm btn-outline-primary">View All Interviews</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead><tr><th>Candidate</th><th>Date</th><th>Type</th><th>Status</th></tr></thead>
+                <tbody>
+                    {% if upcoming_interviews_list %}
+                        {% for interview in upcoming_interviews_list %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-circle p-1 me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-person-fill text-primary" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">{{ interview.application.intern.user.get_full_name|default:interview.application.intern.user.username }}</div>
+                                        <small class="text-muted">{{ interview.application.internship_offer.title|truncatechars:20 }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ interview.date_time|date:"M d H:i" }}</td>
+                            <td><span class="badge badge-sm badge-interview-type">{{ interview.get_interview_type_display }}</span></td>
+                            <td><span class="badge badge-sm badge-{{ interview.status }}">{{ interview.get_status_display }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="4" class="text-center text-muted">No upcoming interviews</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div></div></div>
+    <div class="col-md-6"><div class="card"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">Recent Applications</h5>
+            <a href="{% url 'admin_application_list' %}" class="btn btn-sm btn-outline-primary">Manage Applications</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead><tr><th>Candidate</th><th>Position</th><th>Status</th></tr></thead>
+                <tbody>
+                    {% if recent_applications %}
+                        {% for app in recent_applications %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-circle p-1 me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-person-fill text-primary" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <div class="fw-semibold">{{ app.intern.user.get_full_name|default:app.intern.user.username }}</div>
+                                </div>
+                            </td>
+                            <td>{{ app.internship_offer.title|truncatechars:25 }}</td>
+                            <td><span class="badge badge-sm badge-{{ app.status }}">{{ app.get_status_display }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="3" class="text-center text-muted">No recent applications</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div></div></div>
+</div>
+
+<div class="row">
+    <div class="col-md-12"><div class="card"><div class="card-body">
+        <h5 class="card-title mb-3">Action Shortcuts</h5>
+        <div class="action-shortcuts">
+            <div class="row">
+                <div class="col-md-3"><a href="{% url 'admin:core_internshipoffer_add' %}" class="btn w-100" style="background: #16A34A; color: white; border: 1px solid #16A34A;"><i class="bi bi-plus-circle me-2"></i>Add New Offer</a></div>
+                <div class="col-md-3"><a href="{% url 'admin_interns_list' %}" class="btn w-100" style="background: #14b8a6; color: white; border: 1px solid #14b8a6;"><i class="bi bi-people me-2"></i>View Interns</a></div>
+                <div class="col-md-3"><a href="{% url 'admin:core_interview_add' %}" class="btn w-100" style="background: #2563EB; color: white; border: 1px solid #2563EB;"><i class="bi bi-calendar-plus me-2"></i>Schedule Interview</a></div>
+                <div class="col-md-3"><a href="{% url 'admin_application_list' %}" class="btn w-100" style="background: #6B7280; color: white; border: 1px solid #6B7280;"><i class="bi bi-eye me-2"></i>Review Applications</a></div>
+            </div>
+        </div>
+    </div></div></div>
+</div>
+{% endblock %}
+{% block extra_js %}
+{{ block.super }}
+<script>
+const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+new Chart(departmentCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ department_labels|safe }},
+        datasets: [{
+            label: 'Applications',
+            data: {{ department_data|safe }},
+            backgroundColor: ['rgba(102, 126, 234, 0.8)','rgba(118, 75, 162, 0.8)','rgba(240, 147, 251, 0.8)','rgba(245, 87, 108, 0.8)','rgba(79, 172, 254, 0.8)','rgba(67, 233, 123, 0.8)'],
+            borderColor: ['rgba(102, 126, 234, 1)','rgba(118, 75, 162, 1)','rgba(240, 147, 251, 1)','rgba(245, 87, 108, 1)','rgba(79, 172, 254, 1)','rgba(67, 233, 123, 1)'],
+            borderWidth: 1
+        }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+});
+
+const offersCtx = document.getElementById('offersChart').getContext('2d');
+new Chart(offersCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ offers_department_labels|safe }},
+        datasets: [{
+            data: {{ offers_department_data|safe }},
+            backgroundColor: ['rgba(67, 233, 123, 0.8)','rgba(245, 87, 108, 0.8)','rgba(79, 172, 254, 0.8)','rgba(255, 193, 7, 0.8)','rgba(23, 162, 184, 0.8)','rgba(108, 117, 125, 0.8)'],
+            borderColor: ['rgba(67, 233, 123, 1)','rgba(245, 87, 108, 1)','rgba(79, 172, 254, 1)','rgba(255, 193, 7, 1)','rgba(23, 162, 184, 1)','rgba(108, 117, 125, 1)'],
+            borderWidth: 2
+        }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+});
+
+const interviewsCtx = document.getElementById('interviewsChart').getContext('2d');
+new Chart(interviewsCtx, {
+    type: 'line',
+    data: {
+        labels: {{ interview_month_labels|safe }},
+        datasets: [{
+            label: 'Interviews',
+            data: {{ interview_month_data|safe }},
+            borderColor: 'rgba(79, 172, 254, 1)',
+            backgroundColor: 'rgba(79, 172, 254, 0.2)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+});
+</script>
+{% endblock %}
