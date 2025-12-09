@@ -7,14 +7,21 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
+from django.urls import reverse
 
 @admin.register(InternshipOffer)
 class InternshipOfferAdmin(admin.ModelAdmin):
+    change_form_template = "admin/core/internshipoffer/change_form.html"
     list_display = ('title', 'department', 'start_date', 'end_date', 'is_archived', 'application_count', 'view_applications_link')
     list_filter = ('department', 'is_archived', 'start_date', 'end_date')
     actions = ['archive_selected', 'unarchive_selected']
     date_hierarchy = 'start_date'
-
+    fieldsets = [
+        (None, {
+            'fields': ('title', 'description', 'department', 'duration', 'requirements', 'start_date', 'end_date')
+        }),
+    ]
     def application_count(self, obj):
         return obj.applications.count()
     application_count.short_description = 'Applications'
@@ -33,6 +40,18 @@ class InternshipOfferAdmin(admin.ModelAdmin):
         updated = queryset.update(is_archived=False)
         self.message_user(request, f"{updated} internship offer(s) unarchived successfully.")
     unarchive_selected.short_description = "Unarchive selected offers"
+
+    def response_change(self, request, obj):
+        if '_save' in request.POST:
+            self.message_user(request, "Offer saved successfully.", messages.SUCCESS)
+            return redirect('admin_offers_list')
+        return super().response_change(request, obj)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if '_save' in request.POST:
+            self.message_user(request, "Offer added successfully.", messages.SUCCESS)
+            return redirect('admin_offers_list')
+        return super().response_add(request, obj, post_url_continue)
 
 @admin.register(Intern)
 class InternAdmin(admin.ModelAdmin):
@@ -169,13 +188,18 @@ class InternshipApplicationAdmin(admin.ModelAdmin):
 
 @admin.register(Interview)
 class InterviewAdmin(admin.ModelAdmin):
+    change_form_template = "admin/core/interview/change_form.html"
     list_display = ('get_intern', 'get_internship_offer', 'date_time', 'status', 'archived', 'time_until')
     list_filter = ('status', 'interview_type', 'archived', 'date_time')
     search_fields = ('application__intern__user__username', 'application__internship_offer__title')
     list_editable = ('status', 'archived')
     date_hierarchy = 'date_time'
     actions = ['mark_in_progress', 'mark_completed', 'mark_cancelled', 'mark_no_show', 'toggle_archived']
-
+    fieldsets = [
+        (None, {
+            'fields': ('application', 'date_time', 'interview_type', 'status', 'zoom_link', 'location', 'notes', 'feedback')
+        }),
+    ]
     def get_intern(self, obj):
         return obj.application.intern.user.get_full_name() or obj.application.intern.user.username
     get_intern.short_description = 'Intern'
@@ -224,3 +248,16 @@ class InterviewAdmin(admin.ModelAdmin):
             obj.save()
         self.message_user(request, f"Toggled archive status for {queryset.count()} interview(s).")
     toggle_archived.short_description = "Toggle archive status"
+
+    
+    def response_change(self, request, obj):
+         if '_save' in request.POST:
+                 self.message_user(request, "Interview saved successfully.", messages.SUCCESS)
+                 return redirect('admin_interviews_list')
+         return super().response_change(request, obj)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if '_save' in request.POST:
+             self.message_user(request, "Interview saved successfully.", messages.SUCCESS)   
+             return redirect('admin_interviews_list')
+        return super().response_add(request, obj, post_url_continue)
