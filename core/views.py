@@ -10,7 +10,34 @@ from django.utils import timezone
 from django.contrib.auth import login
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.contrib.auth.views import LoginView
+from django.urls import reverse_lazy
+
+# Safe import for intern_required decorator
+try:
+    from .decorators import intern_required
+except ImportError:
+    # Fallback decorator that does nothing
+    def intern_required(view_func):
+        return view_func
+
+# Custom Login View with reverse_lazy
+class CustomLoginView(LoginView):
+    template_name = 'registration/login.html'
     
+    def form_valid(self, form):
+        # Check if the user is admin and trying to login through regular login page
+        user = form.get_user()
+        if user.is_staff or user.is_superuser:
+            messages.error(self.request, "Admin users must use /admin/login to access the admin interface.")
+            return redirect('login')
+        
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        # For regular users, redirect to dashboard
+        return reverse_lazy('dashboard')
+
 def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -29,7 +56,7 @@ def home(request):
         return redirect('dashboard')
     return offer_list(request)
 
-@login_required
+@intern_required
 def dashboard(request):
     intern = get_object_or_404(Intern, user=request.user)
     applications = InternshipApplication.objects.filter(intern=intern).select_related('internship_offer').order_by('-applied_at')
@@ -103,7 +130,7 @@ def offer_list(request):
     return render(request, "offers/offer_list.html", context)
 
 
-@login_required
+@intern_required
 def apply_offer(request, offer_id):
     offer = get_object_or_404(InternshipOffer, id=offer_id)
     intern, _ = Intern.objects.get_or_create(user=request.user)
@@ -125,7 +152,7 @@ def apply_offer(request, offer_id):
     return redirect('offer_list')
 
 
-@login_required
+@intern_required
 def upload_cv(request):
     intern, _ = Intern.objects.get_or_create(user=request.user)
     
@@ -152,7 +179,7 @@ def upload_cv(request):
         'intern': intern  
     })
 
-@login_required
+@intern_required
 def edit_profile(request):
     if request.method == 'POST':
         form = UserEditForm(instance=request.user, data=request.POST)
@@ -165,7 +192,7 @@ def edit_profile(request):
     
     return render(request, 'intern/edit_profile.html', {'form': form})
 
-@login_required
+@intern_required
 def profile(request):
     intern = get_object_or_404(Intern, user=request.user)
     return render(request, 'intern/profile.html', {'intern': intern})

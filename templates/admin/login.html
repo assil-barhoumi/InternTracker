@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+{% load static i18n %}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login - Smart Intern</title>
+<style>
+:root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --shadow: rgba(37,99,235,0.2);
+    --focus-shadow: rgba(37,99,235,0.25);
+}
+body {
+    font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:#f1f5f9;
+    margin:0;padding:20px;
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+}
+.login-box {
+    background:#fff;padding:2rem;border-radius:10px;
+    box-shadow:0 8px 20px var(--shadow);
+    width:100%;max-width:380px;
+    transition:0.3s;
+}
+.login-box:hover {transform:translateY(-3px);box-shadow:0 12px 25px var(--shadow);}
+h1 {color:#1e40af;text-align:center;margin-bottom:1.5rem;font-size:1.6rem;}
+.form-group {margin-bottom:1.25rem;}
+label {display:block;margin-bottom:.5rem;color:#374151;font-weight:600;}
+input[type="text"],input[type="password"] {
+    width:100%;padding:.65rem;border:1px solid #d1d5db;border-radius:6px;
+    font-size:1rem;transition:0.3s;
+}
+input:focus {border-color:var(--primary);box-shadow:0 0 0 4px var(--focus-shadow);outline:none;}
+.submit-button {
+    width:100%;background:var(--primary);color:#fff;border:none;padding:.75rem;
+    border-radius:6px;font-size:1rem;cursor:pointer;margin-top:1rem;
+    box-shadow:0 4px 10px var(--shadow);transition:0.3s;
+}
+.submit-button:hover {background:var(--primary-hover);box-shadow:0 6px 15px var(--shadow);transform:translateY(-1px);}
+.errorlist {color:#dc2626;margin-bottom:1rem;padding:0;list-style:none;}
+@media(max-width:480px){.login-box{padding:1.5rem}h1{font-size:1.4rem}}
+</style>
+</head>
+<body>
+<div class="login-box">
+    <h1>Admin Login</h1>
+    {% if form.errors %}
+        <ul class="errorlist">
+            {% if form.non_field_errors %}
+                {% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}
+            {% else %}<li>Please correct the errors below.</li>{% endif %}
+        </ul>
+    {% endif %}
+    <form method="post" action="{{ app_path }}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_username">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}<div class="errorlist">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+            <label for="id_password">Password</label>
+            {{ form.password }}
+            {% if form.password.errors %}<div class="errorlist">{{ form.password.errors.0 }}</div>{% endif %}
+        </div>
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit" class="submit-button">Sign In</button>
+    </form>
+</div>
+</body>
+</html>
