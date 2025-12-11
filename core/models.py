@@ -2,17 +2,65 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from datetime import date, timedelta
 
 
 class InternshipOffer(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     department = models.CharField(max_length=200)
-    duration = models.CharField(max_length=100)
+    duration = models.CharField(max_length=100, help_text="e.g., '3 months', '6 months', '1 year'")
     requirements = models.TextField()
     start_date = models.DateField()
-    end_date = models.DateField()
+    end_date = models.DateField(blank=True, null=True)
     is_archived = models.BooleanField(default=False)
+
+    def clean(self):
+        super().clean()
+        if self.start_date and self.duration:
+            try:
+                duration_parts = self.duration.lower().split()
+                if len(duration_parts) >= 2:
+                    amount = int(duration_parts[0])
+                    unit = duration_parts[1]
+                    
+                    if 'month' in unit:
+                        calculated_end_date = self.start_date + timedelta(days=amount*30)
+                    elif 'year' in unit:
+                        calculated_end_date = self.start_date + timedelta(days=amount*365)
+                    else:
+                        raise ValidationError("Duration must be in months or years")
+                    
+                    if self.end_date and self.end_date != calculated_end_date:
+                        raise ValidationError(
+                            f"End date must be {calculated_end_date} based on duration of {self.duration}"
+                        )
+                    
+                    if not self.end_date:
+                        self.end_date = calculated_end_date
+                        
+            except (ValueError, IndexError):
+                raise ValidationError("Invalid duration format. Use format like '3 months' or '1 year'")
+        
+        if self.start_date and self.start_date < date.today():
+            raise ValidationError("start date cannot be in the past")
+
+    def save(self, *args, **kwargs):
+        if self.start_date and self.duration and not self.end_date:
+            try:
+                duration_parts = self.duration.lower().split()
+                if len(duration_parts) >= 2:
+                    amount = int(duration_parts[0])
+                    unit = duration_parts[1]
+                    
+                    if 'month' in unit:
+                        self.end_date = self.start_date + timedelta(days=amount*30)
+                    elif 'year' in unit:
+                        self.end_date = self.start_date + timedelta(days=amount*365)
+            except (ValueError, IndexError):
+                pass
+        
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title

@@ -22,6 +22,10 @@ class InternshipOfferAdmin(admin.ModelAdmin):
             'fields': ('title', 'description', 'department', 'duration', 'requirements', 'start_date', 'end_date')
         }),
     ]
+    
+    class Media:
+        js = ('js/internship_offer_admin.js',)
+    
     def application_count(self, obj):
         return obj.applications.count()
     application_count.short_description = 'Applications'
