@@ -110,17 +110,17 @@ class InternshipApplicationAdmin(admin.ModelAdmin):
             InternshipApplication.objects.select_related('intern__user', 'internship_offer'),
             pk=object_id
         )
-        interviews = application.interviews.order_by('-date_time')
+        interview = application.interview if hasattr(application, 'interview') else None
 
         extra_context = extra_context or {}
         extra_context.update({
             'application_obj': application,
-            'interviews': interviews,
+            'interview': interview,
         })
         return super().change_view(request, object_id, form_url, extra_context)
 
     def interview_status(self, obj):
-        interview = obj.interviews.first()
+        interview = obj.interview if hasattr(obj, 'interview') else None
         if interview:
             return f"{interview.get_interview_type_display()} - {'Completed' if interview.status == 'completed' else 'Pending'}"
         return "No Interview"
@@ -188,7 +188,6 @@ class InternshipApplicationAdmin(admin.ModelAdmin):
 
 @admin.register(Interview)
 class InterviewAdmin(admin.ModelAdmin):
-    change_form_template = "admin/core/interview/change_form.html"
     list_display = ('get_intern', 'get_internship_offer', 'date_time', 'status', 'archived', 'time_until')
     list_filter = ('status', 'interview_type', 'archived', 'date_time')
     search_fields = ('application__intern__user__username', 'application__internship_offer__title')
@@ -200,6 +199,35 @@ class InterviewAdmin(admin.ModelAdmin):
             'fields': ('application', 'date_time', 'interview_type', 'status', 'zoom_link', 'location', 'notes', 'feedback')
         }),
     ]
+    
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj is None:  
+            from .models import InternshipApplication
+            applications_with_interview = set(
+                Interview.objects.values_list('application_id', flat=True)
+            )
+            queryset = InternshipApplication.objects.exclude(
+                id__in=applications_with_interview
+            )
+            
+            application_id = request.GET.get('application')
+            if application_id:
+                queryset = queryset.filter(id=application_id)
+            
+            form.base_fields['application'].queryset = queryset
+        return form
+    
+    def save_model(self, request, obj, form, change):
+        if not change:  
+            if obj.application:
+                from .models import Interview
+                if Interview.objects.filter(application=obj.application).exists():
+                    from django.contrib import messages
+                    messages.error(request, "This application already has an interview scheduled.")
+                    return
+        super().save_model(request, obj, form, change)
+
     def get_intern(self, obj):
         return obj.application.intern.user.get_full_name() or obj.application.intern.user.username
     get_intern.short_description = 'Intern'

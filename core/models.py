@@ -58,7 +58,7 @@ class Interview(models.Model):
         ('in_person', 'In Person'),
     ]
     
-    application = models.ForeignKey(InternshipApplication, on_delete=models.CASCADE, related_name='interviews', null=True, blank=True)
+    application = models.OneToOneField(InternshipApplication, on_delete=models.CASCADE, related_name='interview', null=True, blank=True)
     date_time = models.DateTimeField()
     interview_type = models.CharField(max_length=20, choices=INTERVIEW_TYPES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled')
